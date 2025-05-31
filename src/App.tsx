@@ -1,9 +1,11 @@
 import SQLViewer from "./components/sql-viewer";
 
+import styles from "./App.module.css";
+
 function App() {
 	return (
-		<div>
-			<h1>Welcome to SQL Handbook</h1>
+		<div className={styles.container}>
+			<h1 className={styles.title}>Welcome to SQL Handbook</h1>
 			<SQLViewer />
 		</div>
 	);

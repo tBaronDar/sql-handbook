@@ -1,0 +1,11 @@
+.container {
+	margin: 0 auto;
+	max-width: 640px;
+	padding-bottom: 32px;
+}
+
+.controls {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
