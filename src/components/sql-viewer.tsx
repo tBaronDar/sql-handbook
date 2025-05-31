@@ -15,16 +15,17 @@ import sqlLecture6b from "../assets/notes/sql_06b_functions_and_procedures.sql.t
 import styles from "./sql-viewer.module.css";
 
 const sqlFiles = [
-	sqlLecture1,
-	sqlLecture2,
-	sqlLecture3,
-	sqlLecture4,
-	sqlLecture5a,
-	sqlLecture5b,
-	sqlLecture5c,
-	sqlLecture6a,
-	sqlLecture6b,
+	{ name: "sql_01.sql.txt", content: sqlLecture1 },
+	{ name: "sql_02.sql.txt", content: sqlLecture2 },
+	{ name: "sql_03.sql.txt", content: sqlLecture3 },
+	{ name: "sql_04.sql.txt", content: sqlLecture4 },
+	{ name: "sql_05a_views.sql.txt", content: sqlLecture5a },
+	{ name: "sql_05b_defaults_and_checks.sql.txt", content: sqlLecture5b },
+	{ name: "sql_05c_triggers.sql.txt", content: sqlLecture5c },
+	{ name: "sql_06a_indexing.sql.txt", content: sqlLecture6a },
+	{ name: "sql_06b_functions_and_procedures.sql.txt", content: sqlLecture6b },
 ];
+
 export default function SQLViewer() {
 	const [fileIndex, setFileIndex] = useState(0);
 	return (
@@ -41,9 +42,12 @@ export default function SQLViewer() {
 					Next
 				</button>
 			</div>
-			<h3>SQL Script</h3>
+			<h3
+				className={
+					styles.title
+				}>{`Ονομα αρχειου: ${sqlFiles[fileIndex].name}`}</h3>
 			<SyntaxHighlighter language="sql" style={oneDark}>
-				{sqlFiles[fileIndex]}
+				{sqlFiles[fileIndex].content}
 			</SyntaxHighlighter>
 		</div>
 	);
