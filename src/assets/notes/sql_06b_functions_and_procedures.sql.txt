@@ -1,0 +1,104 @@
+-- 1. simple function: get city by order id
+
+create function get_order_city(order_id int)
+returns varchar(200)
+deterministic
+begin
+    declare city_name varchar(200);
+    select city into city_name from orders where id = order_id;
+    return city_name;
+end;
+
+
+-- 2. simple procedure: insert a new order
+
+create procedure insert_order(
+    in in_orderdate date,
+    in in_city varchar(200)
+)
+begin
+    insert into orders(orderdate, city)
+    values (in_orderdate, in_city);
+end;
+
+call insert_order(curdate(), 'new york');
+
+
+-- 3. advanced function: count orders by city
+
+create function count_orders_by_city(city_name varchar(200))
+returns int
+deterministic
+begin
+    declare total int;
+    select count(*) into total from orders where city = city_name;
+    return total;
+end;
+
+select count_orders_by_city('chicago');
+
+
+-- 4. advanced procedure: move orders to deleted table
+
+create procedure archive_old_orders(in cutoff_date date)
+begin
+    insert into deleted_orders (id, orderdate, city)
+    select id, orderdate, city
+    from orders
+    where orderdate < cutoff_date;
+
+    delete from orders
+    where orderdate < cutoff_date;
+end;
+
+call archive_old_orders('2024-01-01');
+
+
+-- ABOUT TRANSACTIONS
+-- isolation level serializable
+set transaction isolation level serializable
+
+begin
+-- series of DML SQL statements
+commit or rollback
+
+
+-- 5. procedure: insert_and_archive_order as a transaction
+
+create procedure insert_and_archive_order(
+    in in_orderdate date,
+    in in_city varchar(200),
+    in cutoff_date date
+)
+begin
+    declare exit handler for sqlexception
+    begin
+        -- error occurred, rollback transaction
+        rollback;
+        select 'transaction failed. all changes were rolled back.' as status;
+    end;
+
+    -- start transaction
+    start transaction;
+
+    -- step 1: insert the new order
+    insert into orders (orderdate, city)
+    values (in_orderdate, in_city);
+
+    -- step 2: archive old orders from same city
+    insert into deleted_orders (id, orderdate, city)
+    select id, orderdate, city
+    from orders
+    where city = in_city and orderdate < cutoff_date;
+
+    -- step 3: delete the archived records from original table
+    delete from orders
+    where city = in_city and orderdate < cutoff_date;
+
+    -- commit everything
+    commit;
+
+    select 'transaction completed successfully.' as status;
+end;
+
+call insert_and_archive_order(curdate(), 'chicago', '2024-01-01');

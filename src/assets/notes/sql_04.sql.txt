@@ -1,0 +1,105 @@
+-- Αιτήματα που εμπλέκουν τον όρο ΟΛΑ/ΟΛΕΣ/ΟΛΟΙ
+-- Για παράδειγμα: 
+-- (α) ποια άτομα έχουν περάσει ΟΛΑ τα μαθήματα που απαιτούνται για λήψη πτυχίου, 
+-- (β) ποια προϊόντα είχαν πωλήσεις σε ΟΛΕΣ τις ημέρες ενός συγκεκριμένου μήνα, 
+-- (γ) ποια άτομα έχουν πάει σε ΟΛΟΥΣ τους εντός έδρας αγώνες της ομάδας τους, κλπ
+
+
+-- Οι πίνακες για τα παρακάτω παραδείγματα βρίσκονται στη βάση examples
+
+-- Έχουμε το σχεσιακό σχήμα:
+
+-- student (am, name)
+-- course (km, title)
+-- takes (am, km)
+
+-- Θέλουμε τα άτομα που πήραν ΟΛΑ τα μαθήματα. 
+-- Στην SQL έχουμε πολλούς τρόπους για να πετύχουμε το ίδιο αποτέλεσμα.
+
+
+-- q01 Με διαφορά συνόλων:
+--     τα άτομα για τα οποία αν αφαιρεθεί από το σύνολο όλων των μαθημάτων που 
+--     υπάρχουν το σύνολο των μαθημάτων που αυτά πήραν, προκύπτει το κενό σύνολο
+select * 
+from student s 
+where not exists (
+  (select km 
+   from course) 
+   except 
+  (select km 
+   from takes t 
+   where t.am=s.am));
+
+
+-- q02 Με μέτρημα:
+--     τα άτομα για τα οποία το πλήθος των μαθημάτων που πήραν ισούται 
+--     με το πλήθος όλων των μαθημάτων που υπάρχουν
+select * 
+from student s 
+where 
+  (select count(*) 
+   from takes t 
+   where s.am=t.am)
+   =
+  (select 
+   count(*) 
+   from course);
+
+
+-- q03 Με μέτρημα μέσω ομαδοποίησης: 
+--     ίδια εξήγηση με το αμέσως παραπάνω
+select * 
+from student s 
+where am in (select am 
+             from takes
+             group by am
+             having count(*) = (select count(*) from course));
+
+
+
+-- q04 Με διπλή άρνηση: 
+--     τα άτομα για τα οποία ΔΕΝ υπάρχει μάθημα που να ΜΗΝ το έχουν πάρει
+select * 
+from student s 
+where not exists (select * 
+                   from course c 
+                   where not exists (select * 
+                                      from takes t 
+                                      where t.km=c.km and t.am=s.am));
+
+-- s: s.am=1
+--		c: c.km=101
+--		select * from takes t where t.km=101 and t.am=1; == TRUE
+--		2nd not exists(...) == FALSE
+--		c: c.km=102
+--		select * from takes t where t.km=102 and t.am=1; == TRUE
+--		2nd not exists(...) == FALSE
+-- 1st not exists(...) == TRUE
+-- άρα student με am=1 ανήκει στο αποτέλεσμα (έχει πάρει ΟΛΑ τα μαθήματα)
+
+-- s: s.am=2
+--		c: c.km=101
+--		select * from takes t where t.km=101 and t.am=2; == TRUE
+--		2nd not exists(...) == FALSE
+--		c:c.km=102
+--		select * from takes t where t.km=102 and t.am=2; == FALSE
+--		2nd not exists(...) == TRUE
+--		άρα το μάθημα 102 ανήκει στο αποτέλεσμα της δεύτερης select
+-- 1st not exists(...) == FALSE 
+-- άρα student με am=2 δεν ανήκει στο αποτέλεσμα (δεν έχει πάρει το μάθημα 102)
+
+
+
+-- Σας δίνονται οι εντολές DDL για τη δημιουργία των παραπάνω
+-- πινάκων σε δική σας βάση δεδομένων
+
+create table student (am integer primary key, name varchar(50));
+create table course (km integer primary key, title varchar(50));
+create table takes (am integer, km integer, 
+  constraint fkam foreign key (am) references student(am), 
+  constraint fkkm foreign key (km) references course(km));
+
+insert into student values (1, 'Edgar F. Codd'), (2, 'Peter Chen'), 
+ (3, 'Jim Gray'), (4, 'Mike Stonebraker');
+insert into course values (101, 'Databases'), (102, 'Web Programming');
+insert into takes values (1, 101), (1, 102), (2, 101), (3, 102), (4, 101), (4, 102);

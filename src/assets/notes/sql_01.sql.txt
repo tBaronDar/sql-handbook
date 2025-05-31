@@ -1,0 +1,124 @@
+-- q1 προβολή όλων των πεδίων του πίνακα
+select *
+from cd;
+
+
+-- q2 απλή προβολή πεδίων ενός πίνακα
+select pid, name
+from performer;
+
+
+-- q3 συνθήκη επιλογής πάνω σε πίνακα και προβολή
+--    δοκιμάστε και =, >=, <=, >, <, <>
+select pid, name
+from performer
+where pid > 5;
+
+
+-- q4 συνθήκη συμμετοχής σε σύνολο
+select pid, name
+from performer
+where pid in (3, 4, 9);
+
+
+-- q5 συνθήκη συμμετοχής σε διάστημα τιμών [α, β]
+select pid, name
+from performer
+where pid between 3 and 8;
+
+
+-- q6 χρήση κανονικών εκφράσεων (reg exp)
+select pid, name
+from performer
+where name like '%adel%';  -- και '_adel%'
+
+
+-- q7 προβολή όλων των πεδίων του πίνακα και ταξινόμηση αποτελεσμάτων
+--    σε φθίνουσα σειρά (desc)
+--    Δοκιμάστε και asc
+select *
+from cd
+order by year desc;
+
+
+-- q8 Μπορούμε και πολλαπλή ταξινόμηση
+select *
+from cd
+order by year desc, ctitle;
+
+
+-- q9 Εμφάνιση μόνο διακριτών τιμών
+select year
+from cd;
+
+select distinct year
+from cd;
+
+
+-- q10 αληθής συνθήκη επιλογής (επιστρέφεται ολόκληρος ο πίνακας)
+--    δοκιμάστε με 5=2
+select *
+from cd
+where 2 = 2;
+
+
+-- q11 τεχνητά πεδία στην απάντηση με χρήση συναρτήσεων και πράξεων
+select ctitle, ceil(year/100)
+from cd;
+
+
+-- q12 γινόμενο πινάκων
+select *
+from cd, company;
+
+
+-- q13 φυσική σύζευξη
+select ctitle, name
+from cd, company
+where cd.comid=company.comid
+
+
+-- q14 φυσική σύζευξη όλων των πινάκων και ταξινόμηση βάσει τίτλου 
+--     τραγουδιού σε φθίνουσα σειρά 
+select name, ctitle, stitle, year 
+from performer, song, track, cd
+where cd.cid = track.cid and performer.pid = track.pid and song.sid = track.sid
+order by stitle desc;
+
+
+-- q15 ίδιο με το q14 αλλά με χρήση μεταβλητών ως εναλλακτικών ονομάτων πινάκων
+select name, ctitle, stitle, year 
+from performer p, song s, track t, cd c
+where c.cid = t.cid and p.pid = t.pid and s.sid = t.sid;
+
+
+-- q16 εναλλακτικός τρόπος γραφής φυσικής σύζευξης (δουλεύει και χωρίς το inner)
+select distinct name, cid
+from performer inner join track on performer.pid = track.pid;
+
+
+-- q17 τίτλοι cd με ονόματα ερμηνευτών
+select ctitle, name
+from performer p, cd, track t
+where p.pid=t.pid and cd.cid=t.cid;
+
+
+-- q18 φυσική σύζευξη η οποία κρατά μόνο ένα αντίγραφο της κοινής στήλης
+select distinct *
+from performer natural join track;
+
+
+-- q19 φυσική σύζευξη με χρήση του using (καλύτερη πρακτική)
+select distinct *
+from performer join track using(pid);
+
+
+-- q20 ζεύγη cd που κυκλοφόρησαν την ίδια χρονιά
+-- σύζευξη πίνακα με τον εαυτό του με using
+select c1.ctitle, c1.year, c2.ctitle, c2.year
+from cd c1 join cd c2 using (year)
+
+
+-- q21 φυσική σύζευξη πίνακα με τον εαυτό του
+select *
+from cd c1 natural join cd c2;

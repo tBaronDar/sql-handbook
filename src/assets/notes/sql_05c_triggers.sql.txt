@@ -1,0 +1,69 @@
+-- Triggers
+
+-- εναλλακτικός τρόπος χρήσης default τιμής
+create trigger set_orderdate_before_insert
+before insert on orders
+for each row
+begin
+    if new.orderdate is null then
+        set new.orderdate = current_date();
+    end if;
+end;
+
+insert into orders (city) values ('Kozani');
+
+
+-- log city info for order inserts
+-- first, create a log table
+create table order_logs (
+    log_id int auto_increment primary key,
+    message text,
+    created_at datetime default current_timestamp
+);
+
+
+create trigger log_order_insert
+after insert on orders
+for each row
+begin
+    insert into order_logs (message)
+    values (concat('new order inserted for city: ', new.city));
+end;
+
+insert into orders (city) values ('Karditsa');
+
+
+
+-- Signal an error when city is NULL or empty
+create trigger prevent_null_city_update
+before update on orders
+for each row
+begin
+    if new.city is null or trim(new.city) = '' then
+        signal sqlstate '45000' 
+        set message_text = 'city cannot be empty or null.';
+    end if;
+end;
+
+update orders set city=NULL where city='Karditsa';
+
+
+
+-- use trigger to archive deleted orders 
+-- create archive table
+create table deleted_orders (
+    id int,
+    orderdate date,
+    city varchar(200),
+    deleted_at datetime default current_timestamp
+);
+
+create trigger archive_deleted_orders
+after delete on orders
+for each row
+begin
+    insert into deleted_orders (id, orderdate, city)
+    values (old.id, old.orderdate, old.city);
+end;
+
+delete from orders where city='Athens';

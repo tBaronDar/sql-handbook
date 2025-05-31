@@ -1,0 +1,33 @@
+-- χρήση auto_increment
+
+create table orders (
+    id int auto_increment primary key,
+    orderdate date,
+    city varchar(200)
+);
+
+-- εισαγωγή χωρίς να δίνουμε το id
+insert into orders (orderdate, city) values ('2025/01/24', 'Athens'), ('2020/03/17', 'Veria');
+
+-- default constraint for city
+alter table orders alter city set default 'Thessaloniki';
+insert into orders (orderdate) values ('2025/01/25');
+
+-- default constraint for orderdate
+alter table orders alter orderdate set default current_date();
+insert into orders (city) values ('Kozani');
+
+-- we can bypass auto_increment
+insert into orders (id) values (100);
+
+-- droping a defaut constraint
+alter table orders alter city drop default;
+
+-- check constraint on column
+alter table orders add constraint chkdate check (orderdate < '2030/1/1');
+insert into orders (orderdate) values ('2050/1/1');
+alter table orders drop check chkdate;
+
+alter table orders add constraint newchkdate check (orderdate < '2030/1/1' or city>'F');
+
+

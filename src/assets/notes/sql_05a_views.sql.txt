@@ -1,0 +1,69 @@
+-- View = Query
+-- σχήμα της όψης είναι το σχήμα του αιτήματος
+-- θα μπορούσαμε να ορίσουμε την όψη ως ιδεατό (virtual) πίνακα
+
+
+-- q01 δημιουργία όψης
+create view twentyfirstcenturycd as
+select * 
+from cd 
+where year > 2000;
+
+
+-- q02 χρήση όψης
+select year, count(*)
+from twentyfirstcenturycd tf
+group by tf.year
+order by year;
+
+-- q03 χρήση όψης
+select c.comid, c.name, count(*)
+from twentyfirstcenturycd tf join company c on tf.comid=c.comid
+group by c.comid
+
+
+-- q04 στην όμως πράξη το DBMS κάνει αυτό (rewritting):
+select c.comid, c.name, count(*)
+from (select * from cd where year > 2000) tf join company c on tf.comid=c.comid
+group by c.comid
+
+
+-- q05 temporary tables
+create temporary table temp as
+select * from cd where year > 2000;
+
+select c.comid, c.name, count(*)
+from temp tf join company c on tf.comid=c.comid
+group by c.comid
+
+drop table temp;
+
+
+-- q06 ορισμός όψης πάνω σε όψη
+create view twentyfirstcenturyperf as
+select name 
+from (twentyfirstcenturycd join track using(cid)) join performer using(pid);
+
+select *
+from twentyfirstcenturyperf;
+
+
+-- q07 τί γίνεται αν διαγράψω την όψη;
+drop view twentyfirstcenturycd;
+
+
+-- q08 with statement
+-- with t1 (col1, col2) as
+--         (select ...),
+--      t2 (col1) as
+--         (select ...)
+-- select ...
+-- from cd, t1, t2
+-- ...
+with twentyfirstcenturycd as
+(select * 
+ from cd 
+ where year > 2000)
+select c.comid, count(*)
+from twentyfirstcenturycd tf join company c on tf.comid=c.comid
+group by c.comid;

@@ -1,0 +1,27 @@
+-- Ο πίνακας t0 δεν έχει κανένα ευρετήριο
+
+begin;
+set profiling=1;
+select SQL_NO_CACHE * from t0 where word like 'z%';
+select SQL_NO_CACHE * from t0 where id=10000; 
+show profiles;
+
+
+-- Στον πίνακα t1 που αποτελεί αντίγραφο του t0, δημιουργώ ευρετήριο πάνω στο word
+
+create index myindex_on_word on t1(word);
+
+
+-- Τρέχω τα προηγούμενα queries πάνω στον t1
+
+begin;
+set profiling=1;
+select SQL_NO_CACHE * from t1 where word like 'z%';
+select SQL_NO_CACHE * from t1 where id=10000; 
+show profiles;
+
+
+-- Στον πίνακα t1 δημιουργώ ευρετήριο πάνω στο id και ξανατρέχω τα προηγούμενα queries
+
+create index myindex_on_id on t1(id);
+
